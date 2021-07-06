@@ -12,16 +12,18 @@ jobs:
       with:
         ruby-version: 3.0.1
 
-    - name: Run the default task
+    - name: Build and publish
       run: |
         gem install bundler -v 2.2.15
         bundle install
         bundle exec rake build
 
-    - name: Release Gem
-#      if: contains(github.ref, 'refs/tags/v')
-      uses: cadwallion/publish-rubygems-action@master
+    - name: Publish to RubyGems
+      run: |
+        mkdir -p $HOME/.gem
+        touch $HOME/.gem/credentials
+        chmod 0600 $HOME/.gem/credentials
+        printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+        gem push pkg/*.gem
       env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        RUBYGEMS_API_KEY: ${{secrets.RUBYGEMS_API_KEY}}
-        RELEASE_COMMAND: rake release
+        GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_API_KEY}}"
